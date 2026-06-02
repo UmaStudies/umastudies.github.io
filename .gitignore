@@ -1,0 +1,29 @@
+# Research documents (large binary files)
+UmaDocs/
+converted/
+cache/
+
+# Simulation/datamining repos (separate codebases)
+uma-skill-tools-master/
+uma-tools-master/
+
+# Python artifacts
+__pycache__/
+*.pyc
+venvsumatools/
+
+# Conversion tools (not part of the website)
+convert_docs.py
+scraper.py
+
+# HTML transcripts
+recon_main.html
+recon_transcript.html
+
+# Build output (regenerated from source)
+site/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

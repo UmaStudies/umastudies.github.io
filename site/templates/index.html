@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{site_description}}">
+  <meta name="author" content="{{site_author}}">
+  <title>{{site_title}} | Character Studies on Umamusume</title>
+
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+  <link rel="alternate" type="application/rss+xml" title="{{site_title}}" href="feed.xml">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{site_title}}">
+  <meta property="og:description" content="{{site_description}}">
+  <meta property="og:type" content="website">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <a href="index.html" class="site-logo">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="logo-accent">Uma</span>Studies
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">
+        Studies
+        <span class="nav-label-jp">研究</span>
+      </a>
+      <a href="about.html">
+        About
+        <span class="nav-label-jp">概要</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="index-hero">
+    <h1>{{site_title}}</h1>
+    <p class="index-subtitle">
+      In-depth character studies exploring the writing, lore, history,
+      and real-horse connections behind every Umamusume.
+    </p>
+    <p class="index-subtitle-jp">
+      {{site_title_jp}} &mdash; ウマ娘キャラクター研究
+    </p>
+  </section>
+
+  <!-- Studies Grid -->
+  <section class="studies-grid" id="studies">
+    {{study_cards}}
+  </section>
+
+  <!-- Coming soon (rendered only when planned studies are configured) -->
+  {{planned}}
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>
+      {{site_title}} &copy; {{year}} {{site_author}}.
+      Character data and artwork belong to Cygames, Inc.
+    </p>
+    <p style="margin-top: 0.5rem;">
+      ウマ娘 プリティーダービーの著作権は株式会社Cygamesに帰属します。
+    </p>
+  </footer>
+
+</body>
+</html>

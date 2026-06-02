@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{title}} - A complete character study on Umamusume: Pretty Derby">
+  <meta name="author" content="{{site_author}}">
+  <title>{{page_title}}</title>
+
+  <link rel="stylesheet" href="static/css/main.css">
+  <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+  <link rel="alternate" type="application/rss+xml" title="{{site_title}}" href="feed.xml">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{page_title}}">
+  <meta property="og:description" content="{{title}} - A complete character study">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="{{og_image}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{og_image}}">
+</head>
+<body data-character="{{character}}">
+
+  <!-- Particle embers -->
+  <div class="ember" aria-hidden="true"></div>
+  <div class="ember" aria-hidden="true"></div>
+  <div class="ember" aria-hidden="true"></div>
+  <div class="ember" aria-hidden="true"></div>
+  <div class="ember" aria-hidden="true"></div>
+  <div class="ember" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <a href="index.html" class="site-logo">
+      <span class="logo-mark" aria-hidden="true"></span>
+      <span class="logo-accent">Uma</span>Studies
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">
+        Studies
+        <span class="nav-label-jp">研究</span>
+      </a>
+      <a href="about.html">
+        About
+        <span class="nav-label-jp">概要</span>
+      </a>
+    </nav>
+  </header>
+
+  <!-- Table of Contents (floating sidebar, toggleable) -->
+  <div class="study-toc-wrapper">
+    {{toc}}
+  </div>
+
+  <!-- Zen mode toggle -->
+  <button class="toc-toggle" id="toc-toggle" title="Toggle table of contents" aria-label="Toggle table of contents">
+    <span class="icon-toc">&#9776;</span>
+    <span class="icon-zen">&#9998;</span>
+  </button>
+
+  <!-- Study Header (atmospheric) -->
+  <header class="study-header">
+    <!-- Character art background (set per character, only when a header_image is defined) -->
+    {{header_bg}}
+    <div class="header-overlay"></div>
+
+    {{epithet}}
+    <h1>{{title}}</h1>
+    <div class="character-name-jp">{{title_jp}}</div>
+    <div class="study-meta">
+      <span>{{date}}</span>
+      <span class="card-meta-divider"></span>
+      <span>{{word_count}} words</span>
+      <span class="card-meta-divider"></span>
+      <span>{{reading_time}} min read</span>
+    </div>
+    <p class="study-subtitle">{{subtitle}}</p>
+  </header>
+
+  <!-- Translation Disclaimer -->
+  <div class="disclaimer">
+    <strong>A note on translations:</strong>
+    Japanese text is preserved throughout this study because the original
+    wording carries nuance that English cannot fully replicate. The Japanese is the authority text.
+    I am not a native Japanese speaker, so some translations may be imperfect.
+    If you spot an error, I welcome corrections.
+  </div>
+
+  <!-- Reading progress gem (bottom right) -->
+  <div class="progress-gem" id="progress-gem" aria-hidden="true"></div>
+
+  <!-- Opening epigraph (rendered only when set in front matter) -->
+  {{epigraph}}
+
+  <!-- Study Content -->
+  <article class="study-content">
+    {{content}}
+  </article>
+
+  <!-- Reader feedback (rendered only when a form endpoint is configured) -->
+  {{feedback}}
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>
+      <a href="index.html">&larr; Back to all studies</a>
+    </p>
+    <p style="margin-top: 0.75rem;">
+      {{site_title}} &copy; {{year}} {{site_author}}.
+      Character data and artwork belong to Cygames, Inc.
+    </p>
+    <p style="margin-top: 0.5rem; font-family: var(--font-jp);">
+      ウマ娘 プリティーダービーの著作権は株式会社Cygamesに帰属します。
+    </p>
+  </footer>
+
+  <script>
+    // --- Zen mode toggle ---
+    (function() {
+      var btn = document.getElementById('toc-toggle');
+      if (!btn) return;
+      btn.addEventListener('click', function() {
+        document.body.classList.toggle('zen-mode');
+      });
+    })();
+
+    // --- Reveal the floating TOC only after the header is scrolled past ---
+    // Keeps the fixed sidebar from clipping over the study header / title.
+    (function() {
+      var header = document.querySelector('.study-header');
+      var tocWrap = document.querySelector('.study-toc-wrapper');
+      if (!header || !tocWrap) return;
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          // Header out of view -> show TOC; header visible -> hide it.
+          tocWrap.classList.toggle('is-visible', !entry.isIntersecting);
+        });
+      }, { threshold: 0 });
+      observer.observe(header);
+    })();
+
+    // --- Active TOC highlight (scroll spy) ---
+    (function() {
+      var toc = document.querySelector('.study-toc');
+      if (!toc) return;
+      var links = toc.querySelectorAll('a');
+      var headings = [];
+      links.forEach(function(link) {
+        var id = link.getAttribute('href').slice(1);
+        var el = document.getElementById(id);
+        if (el) headings.push({ el: el, link: link });
+      });
+      var raf = null;
+      window.addEventListener('scroll', function() {
+        if (raf) return;
+        raf = requestAnimationFrame(function() {
+          raf = null;
+          var scrollY = window.scrollY + 120;
+          var active = null;
+          for (var i = headings.length - 1; i >= 0; i--) {
+            if (headings[i].el.offsetTop <= scrollY) {
+              active = headings[i];
+              break;
+            }
+          }
+          links.forEach(function(l) { l.classList.remove('active'); });
+          if (active) active.link.classList.add('active');
+        });
+      });
+    })();
+
+    // --- Scroll-triggered section entrances ---
+    (function() {
+      var sections = document.querySelectorAll('.study-content h2');
+      sections.forEach(function(h2) {
+        h2.classList.add('section-reveal');
+        // Also reveal the content between this h2 and the next
+        var sibling = h2.nextElementSibling;
+        while (sibling && sibling.tagName !== 'H2') {
+          sibling.classList.add('section-reveal');
+          sibling = sibling.nextElementSibling;
+        }
+      });
+
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+      document.querySelectorAll('.section-reveal').forEach(function(el) {
+        observer.observe(el);
+      });
+    })();
+
+    // --- Auto-detect pull quotes ---
+    // Blockquotes containing key thesis phrases get promoted to pull-quotes.
+    (function() {
+      var triggers = [
+        'stop being me',
+        'I sought perfection',
+        'horseshoes and a rival',
+        'single-heartedly, endlessly',
+        'drove me this mad'
+      ];
+      var quotes = document.querySelectorAll('.study-content blockquote');
+      quotes.forEach(function(q) {
+        var text = q.textContent;
+        for (var i = 0; i < triggers.length; i++) {
+          if (text.indexOf(triggers[i]) !== -1) {
+            q.classList.add('pull-quote');
+            break;
+          }
+        }
+      });
+    })();
+
+    // --- Pleochroic color shift + progress gem ---
+    // As you scroll, the accent hue shifts: violet(275) -> blue(230) -> burgundy(340)
+    // The progress gem rotates to show different facets.
+    (function() {
+      var body = document.body;
+      if (!body.dataset.character) return;
+
+      var gem = document.getElementById('progress-gem');
+
+      // Tanzanite pleochroic stops: violet, blue, burgundy
+      var stops = [
+        { pos: 0,   h: 265, s: 30, l: 53 },
+        { pos: 0.5, h: 230, s: 35, l: 50 },
+        { pos: 1,   h: 330, s: 28, l: 48 }
+      ];
+
+      function lerp(a, b, t) { return a + (b - a) * t; }
+
+      function getColor(progress) {
+        var i = 0;
+        for (var j = 1; j < stops.length; j++) {
+          if (progress <= stops[j].pos) { i = j - 1; break; }
+        }
+        var a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+        var range = b.pos - a.pos;
+        var t = range > 0 ? (progress - a.pos) / range : 0;
+        t = Math.max(0, Math.min(1, t));
+        return { h: lerp(a.h, b.h, t), s: lerp(a.s, b.s, t), l: lerp(a.l, b.l, t) };
+      }
+
+      var raf = null;
+      window.addEventListener('scroll', function() {
+        if (raf) return;
+        raf = requestAnimationFrame(function() {
+          raf = null;
+          var scrollMax = document.documentElement.scrollHeight - window.innerHeight;
+          var progress = scrollMax > 0 ? window.scrollY / scrollMax : 0;
+          var c = getColor(progress);
+
+          var accent = 'hsl(' + c.h + ',' + c.s + '%,' + c.l + '%)';
+          var accentLight = 'hsl(' + c.h + ',' + (c.s + 10) + '%,' + (c.l + 12) + '%)';
+          var quoteBorder = 'hsl(' + c.h + ',' + (c.s + 5) + '%,' + (c.l + 15) + '%)';
+          var glow = 'hsla(' + c.h + ',' + c.s + '%,' + c.l + '%, 0.12)';
+
+          body.style.setProperty('--accent-primary', accent);
+          body.style.setProperty('--accent-secondary', accentLight);
+          body.style.setProperty('--quote-border', quoteBorder);
+          body.style.setProperty('--link-color', accentLight);
+          body.style.setProperty('--accent-glow', glow);
+
+          // Rotate the progress gem (0 -> 360deg over the full scroll)
+          if (gem) {
+            var rotation = 45 + (progress * 360);
+            gem.style.transform = 'rotate(' + rotation + 'deg)';
+          }
+        });
+      });
+    })();
+
+
+
+
+    // --- Interactive Appendix ---
+    // Click an appendix table row to jump to where that quote appears in the study.
+    (function() {
+      var article = document.querySelector('.study-content');
+      if (!article) return;
+
+      // Find the appendix table (last table in the article)
+      var tables = article.querySelectorAll('table');
+      if (tables.length === 0) return;
+      var appendixTable = tables[tables.length - 1];
+
+      var rows = appendixTable.querySelectorAll('tbody tr, tr:not(:first-child)');
+      // Skip header row
+      var dataRows = [];
+      rows.forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        if (cells.length >= 1) dataRows.push(row);
+      });
+
+      // For each data row, extract the JP text and find it in the article body
+      dataRows.forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        if (!cells[0]) return;
+
+        // Get a search snippet from the JP text (first 8 chars)
+        var jpText = cells[0].textContent.trim();
+        var snippet = jpText.substring(0, 8);
+        if (snippet.length < 4) return;
+
+        row.setAttribute('data-quote-target', snippet);
+
+        row.addEventListener('click', function() {
+          // Find blockquotes containing this snippet
+          var quotes = article.querySelectorAll('blockquote');
+          var target = null;
+          for (var i = 0; i < quotes.length; i++) {
+            if (quotes[i].textContent.indexOf(snippet) !== -1) {
+              target = quotes[i];
+              break;
+            }
+          }
+          if (!target) return;
+
+          // Remove any existing highlights
+          var old = article.querySelectorAll('.quote-highlight');
+          old.forEach(function(el) { el.classList.remove('quote-highlight'); });
+
+          // Scroll to the quote and highlight it
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.classList.add('quote-highlight');
+
+          // Remove highlight after 3 seconds
+          setTimeout(function() {
+            target.classList.remove('quote-highlight');
+          }, 3000);
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>

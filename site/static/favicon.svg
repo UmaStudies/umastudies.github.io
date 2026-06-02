@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="UmaStudies">
+  <!-- horseshoe -->
+  <path d="M12 10.5 A4.2 4.2 0 1 1 20 10.5" fill="none" stroke="#5B8C6A" stroke-width="2.3" stroke-linecap="round"/>
+  <!-- open book -->
+  <path d="M16 14.5 L4.5 12.5 L4.5 25 L16 27 Z" fill="#5B8C6A"/>
+  <path d="M16 14.5 L27.5 12.5 L27.5 25 L16 27 Z" fill="#5B8C6A" opacity="0.78"/>
+</svg>
