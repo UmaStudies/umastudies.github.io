@@ -1,7 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="UmaStudies">
-  <!-- horseshoe -->
-  <path d="M12 10.5 A4.2 4.2 0 1 1 20 10.5" fill="none" stroke="#5B8C6A" stroke-width="2.3" stroke-linecap="round"/>
-  <!-- open book -->
-  <path d="M16 14.5 L4.5 12.5 L4.5 25 L16 27 Z" fill="#5B8C6A"/>
-  <path d="M16 14.5 L27.5 12.5 L27.5 25 L16 27 Z" fill="#5B8C6A" opacity="0.78"/>
+  <!-- Closed book cover with a horseshoe knocked out of the centre.
+       Single path with evenodd fill so the horseshoe reads as negative space.
+       This keeps it legible both as the coloured favicon and when the logo
+       mark is tinted to the page accent via CSS mask (where a separate-fill
+       horseshoe would vanish into a solid block). -->
+  <path fill-rule="evenodd" fill="#5B8C6A" d="
+    M9 3 H23 A2 2 0 0 1 25 5 V27 A2 2 0 0 1 23 29 H9 A2 2 0 0 1 7 27 V5 A2 2 0 0 1 9 3 Z
+    M11 15 A5 5 0 0 1 21 15 L21 22 L18.4 22 L18.4 15 A2.6 2.6 0 0 0 13.6 15 L13.6 22 L11 22 Z
+  "/>
 </svg>

@@ -6,6 +6,7 @@ Generates an index page listing all published studies.
 
 import os
 import re
+import json
 import math
 import html as html_lib
 from pathlib import Path
@@ -30,10 +31,10 @@ SITE_AUTHOR = "Isackj07"
 # Leave empty to omit the form entirely. This is a public endpoint, not a secret.
 FEEDBACK_FORM_ACTION = "https://formspree.io/f/mwvzgndg"
 
-# Public base URL of the deployed site (e.g. https://umastudies.example).
-# Used for absolute share-image and RSS links. Leave empty until deployed;
-# the RSS feed needs this set to be valid.
-SITE_URL = ""
+# Public base URL of the deployed site. Used for absolute share-image and RSS
+# links. Set to the GitHub Pages project URL. Change this if a custom domain
+# is added later.
+SITE_URL = "https://ketiakhitam.github.io/UmaTools"
 
 # Upcoming studies shown in the "Coming soon" section on the index.
 # Each entry: {"name": "Display Name", "name_jp": "日本語", "note": "optional line"}.
@@ -203,6 +204,19 @@ def format_part_headings(html: str) -> str:
     return PART_HEADING_PATTERN.sub(replace, html)
 
 
+# Markdown emits bare <table> elements with no wrapper. Wrapping each in a
+# horizontally scrollable container keeps the wide bilingual appendix table
+# from overflowing or crushing its columns on narrow (mobile) viewports.
+TABLE_PATTERN = re.compile(r"<table>(.*?)</table>", re.DOTALL)
+
+
+def wrap_tables(html: str) -> str:
+    """Wrap each table in a horizontal-scroll container for mobile."""
+    return TABLE_PATTERN.sub(
+        r'<div class="table-scroll"><table>\1</table></div>', html
+    )
+
+
 def render_feedback(title_safe: str) -> str:
     """Render the reader feedback form, or empty string if no endpoint is set.
 
@@ -259,6 +273,41 @@ def render_template(template: str, context: dict) -> str:
     return result
 
 
+def page_url(path: str) -> str:
+    """Absolute URL for a page given its dist-relative path.
+
+    Empty path returns the site root. Returns empty string when SITE_URL is
+    unset, so callers can omit absolute-only markup (canonical, og:url).
+    """
+    base = SITE_URL.rstrip("/")
+    if not base:
+        return ""
+    return f"{base}/{path}" if path else f"{base}/"
+
+
+def build_seo_head(canonical_path: str, jsonld: dict | None = None) -> str:
+    """Build the shared SEO <head> block for a page.
+
+    Emits canonical + og:url only when SITE_URL is set (they must be absolute).
+    og:site_name and og:locale are always safe. Optional JSON-LD is serialized
+    as a structured-data script. Returns markup ready to drop into {{seo_head}}.
+    """
+    parts = []
+    url = page_url(canonical_path)
+    if url:
+        parts.append(f'<link rel="canonical" href="{html_lib.escape(url, quote=True)}">')
+        parts.append(f'<meta property="og:url" content="{html_lib.escape(url, quote=True)}">')
+    parts.append(f'<meta property="og:site_name" content="{html_lib.escape(SITE_TITLE)}">')
+    parts.append('<meta property="og:locale" content="en_US">')
+    if jsonld:
+        parts.append(
+            '<script type="application/ld+json">'
+            + json.dumps(jsonld, ensure_ascii=False)
+            + "</script>"
+        )
+    return "\n  ".join(parts)
+
+
 def build_study(md_path: Path) -> dict:
     """Convert a single markdown study to HTML. Returns metadata for the index."""
     with open(md_path, "r", encoding="utf-8") as f:
@@ -291,8 +340,19 @@ def build_study(md_path: Path) -> dict:
     content_html = enhance_images(content_html)
     toc = extract_toc(content_html)
     toc_html = render_toc_html(toc)
+    # Collapsed contents block shown only on small screens (the floating
+    # sidebar TOC is hidden there). Native <details>, no JavaScript.
+    mobile_toc_html = (
+        '<details class="mobile-toc"><summary>Contents '
+        '<span class="mobile-toc-jp">目次</span></summary>'
+        f"{toc_html}</details>"
+        if toc
+        else ""
+    )
     # Ceremonial Part openers. After TOC extraction so the TOC text stays plain.
     content_html = format_part_headings(content_html)
+    # Wrap tables so the wide appendix scrolls instead of overflowing on mobile.
+    content_html = wrap_tables(content_html)
 
     # Reading stats
     reading_min = estimate_reading_time(body)
@@ -347,9 +407,29 @@ def build_study(md_path: Path) -> dict:
     else:
         og_image = ""
 
+    # Structured data so search engines treat each study as an Article.
+    article_jsonld = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title,
+        "inLanguage": "en",
+        "datePublished": date_str,
+        "author": {"@type": "Person", "name": SITE_AUTHOR},
+        "publisher": {"@type": "Organization", "name": SITE_TITLE},
+        "wordCount": words,
+    }
+    if excerpt:
+        article_jsonld["description"] = excerpt
+    if og_image:
+        article_jsonld["image"] = og_image
+    canonical = page_url(f"{character}.html")
+    if canonical:
+        article_jsonld["mainEntityOfPage"] = canonical
+
     html = render_template(template, {
         "site_title": SITE_TITLE,
         "page_title": f"{title_safe} | {SITE_TITLE}",
+        "seo_head": build_seo_head(f"{character}.html", article_jsonld),
         "character": character,
         "title": title_safe,
         "title_jp": title_jp_safe,
@@ -359,6 +439,7 @@ def build_study(md_path: Path) -> dict:
         "word_count": f"{words:,}",
         "content": content_html,
         "toc": toc_html,
+        "mobile_toc": mobile_toc_html,
         "feedback": render_feedback(title_safe),
         "epithet": epithet_html,
         "epigraph": epigraph_html,
@@ -439,6 +520,7 @@ def build_index(studies: list[dict]) -> None:
     template = load_template("index.html")
     html = render_template(template, {
         "site_title": SITE_TITLE,
+        "seo_head": build_seo_head(""),
         "site_title_jp": SITE_TITLE_JP,
         "site_description": SITE_DESCRIPTION,
         "study_cards": "\n".join(cards_html),
@@ -499,6 +581,57 @@ def build_feed(studies: list[dict]) -> None:
     print(f"  [OK] feed.xml ({len(studies)} items){note}")
 
 
+def build_robots() -> None:
+    """Write dist/robots.txt. Allows all crawlers and points at the sitemap.
+
+    The Sitemap line is only emitted when SITE_URL is set, since it must be an
+    absolute URL.
+    """
+    lines = ["User-agent: *", "Allow: /"]
+    sitemap_url = page_url("sitemap.xml")
+    if sitemap_url:
+        lines.append("")
+        lines.append(f"Sitemap: {sitemap_url}")
+    with open(DIST_DIR / "robots.txt", "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    print("  [OK] robots.txt")
+
+
+def build_sitemap(studies: list[dict]) -> None:
+    """Write dist/sitemap.xml listing the home, about, and every study.
+
+    Requires SITE_URL (sitemap locs must be absolute). Skipped with a warning
+    otherwise. lastmod uses each study's front-matter date; the home uses the
+    newest study date.
+    """
+    base = SITE_URL.rstrip("/")
+    if not base:
+        print("  [skip] sitemap.xml (SITE_URL unset)")
+        return
+
+    def url_entry(loc: str, lastmod: str = "") -> str:
+        mod = f"    <lastmod>{lastmod}</lastmod>\n" if lastmod else ""
+        return f"  <url>\n    <loc>{html_lib.escape(loc)}</loc>\n{mod}  </url>"
+
+    entries = []
+    newest = max((s["date"] for s in studies), default="")
+    entries.append(url_entry(page_url(""), newest))
+    if (CONTENT_DIR.parent / "about.md").exists():
+        entries.append(url_entry(page_url("about.html")))
+    for study in studies:
+        entries.append(url_entry(page_url(study["url"]), study["date"]))
+
+    sitemap = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(entries)
+        + "\n</urlset>\n"
+    )
+    with open(DIST_DIR / "sitemap.xml", "w", encoding="utf-8") as f:
+        f.write(sitemap)
+    print(f"  [OK] sitemap.xml ({len(entries)} urls)")
+
+
 def build_about() -> None:
     """Build the About page from content/about.md, if it exists."""
     about_path = CONTENT_DIR.parent / "about.md"
@@ -515,6 +648,7 @@ def build_about() -> None:
     rendered = render_template(template, {
         "site_title": SITE_TITLE,
         "page_title": f"About | {SITE_TITLE}",
+        "seo_head": build_seo_head("about.html"),
         "content": content_html,
         "site_author": SITE_AUTHOR,
         "year": str(datetime.now().year),
@@ -559,10 +693,12 @@ def main():
         except Exception as e:
             print(f"  [FAIL] {md_path.name}: {e}")
 
-    # Build index, about page, and RSS feed
+    # Build index, about page, RSS feed, and SEO files
     build_index(studies)
     build_about()
     build_feed(studies)
+    build_robots()
+    build_sitemap(studies)
 
     print(f"\n{'=' * 40}")
     print(f"Build complete. Output: {DIST_DIR}")

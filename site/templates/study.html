@@ -18,6 +18,9 @@
   <meta property="og:image" content="{{og_image}}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="{{og_image}}">
+
+  <!-- Canonical, og:url/site_name, structured data -->
+  {{seo_head}}
 </head>
 <body data-character="{{character}}">
 
@@ -88,6 +91,9 @@
 
   <!-- Reading progress gem (bottom right) -->
   <div class="progress-gem" id="progress-gem" aria-hidden="true"></div>
+
+  <!-- Collapsed contents (small screens only; floating sidebar is hidden there) -->
+  {{mobile_toc}}
 
   <!-- Opening epigraph (rendered only when set in front matter) -->
   {{epigraph}}
