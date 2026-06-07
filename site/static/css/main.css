@@ -728,8 +728,8 @@ pre code {
   /* Tints the book+horseshoe mark to the page's accent, so it is green on the
      index and takes each character's color on their study page. */
   background-color: var(--accent-primary);
-  -webkit-mask: url("../favicon.svg") center / contain no-repeat;
-  mask: url("../favicon.svg") center / contain no-repeat;
+  -webkit-mask: url("../logo-mark.svg") center / contain no-repeat;
+  mask: url("../logo-mark.svg") center / contain no-repeat;
 }
 
 .site-nav {
@@ -822,6 +822,75 @@ pre code {
   font-size: var(--text-base);
   color: var(--text-tertiary);
 }
+
+/* --------------------------------------------------------------------------
+   HERO AMBIENCE
+   Quiet atmosphere for the landing hero: a soft radial glow behind the title,
+   a hairline horizon rule beneath it, and a staggered fade-rise on load. The
+   drifting embers (.ember divs in the markup) reuse the study-page motif.
+   All motion is neutralized under prefers-reduced-motion (see that block).
+   -------------------------------------------------------------------------- */
+.index-hero {
+  position: relative;
+}
+
+/* 3D book mark above the title. Uses the depth favicon, with a soft drop
+   shadow so it reads as floating. Leads the staggered entrance. */
+.hero-logo {
+  display: block;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto var(--space-lg);
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+  animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+}
+
+/* Soft radial glow behind the title. Brand green at low alpha. */
+.index-hero::before {
+  content: "";
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  width: min(680px, 92%);
+  height: 380px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(91, 140, 106, 0.12) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Hairline horizon rule beneath the hero text. */
+.index-hero::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 1px;
+  margin: var(--space-xl) auto 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-primary),
+    transparent
+  );
+  opacity: 0.5;
+}
+
+/* Staggered fade-rise on load. `both` fill keeps the end state, so under
+   reduced motion (animation-duration ~0) the text simply appears, fully
+   visible. */
+.index-hero h1,
+.index-hero .index-subtitle,
+.index-hero .index-subtitle-jp {
+  animation: fadeInUp var(--duration-slow) var(--ease-out) both;
+}
+
+.index-hero h1 { animation-delay: 0.05s; }
+.index-hero .index-subtitle { animation-delay: 0.15s; }
+.index-hero .index-subtitle-jp { animation-delay: 0.25s; }
 
 .studies-grid {
   max-width: var(--content-width-wide);
@@ -1542,10 +1611,11 @@ body[data-character]::after {
 
 .ember {
   position: fixed;
-  width: 3px;
-  height: 3px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
-  background: var(--accent-primary);
+  background: var(--accent-secondary);
+  box-shadow: 0 0 6px 1px var(--accent-primary);
   opacity: 0;
   pointer-events: none;
   z-index: 1;
@@ -1558,10 +1628,10 @@ body[data-character]::after {
     transform: translateY(0) translateX(0);
   }
   15% {
-    opacity: 0.3;
+    opacity: 0.7;
   }
   85% {
-    opacity: 0.15;
+    opacity: 0.4;
   }
   100% {
     opacity: 0;
@@ -1569,9 +1639,9 @@ body[data-character]::after {
   }
 }
 
-.ember:nth-child(1) { left: 10%; animation-duration: 18s; animation-delay: 0s; width: 2px; height: 2px; }
+.ember:nth-child(1) { left: 10%; animation-duration: 18s; animation-delay: 0s; width: 3px; height: 3px; }
 .ember:nth-child(2) { left: 25%; animation-duration: 22s; animation-delay: -4s; }
-.ember:nth-child(3) { left: 50%; animation-duration: 20s; animation-delay: -8s; width: 2px; height: 2px; }
+.ember:nth-child(3) { left: 50%; animation-duration: 20s; animation-delay: -8s; width: 3px; height: 3px; }
 .ember:nth-child(4) { left: 70%; animation-duration: 25s; animation-delay: -2s; }
 .ember:nth-child(5) { left: 85%; animation-duration: 19s; animation-delay: -10s; width: 2px; height: 2px; }
 .ember:nth-child(6) { left: 40%; animation-duration: 23s; animation-delay: -6s; }

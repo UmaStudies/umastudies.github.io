@@ -36,6 +36,11 @@ FEEDBACK_FORM_ACTION = "https://formspree.io/f/mwvzgndg"
 # is added later.
 SITE_URL = "https://ketiakhitam.github.io/UmaTools"
 
+# Google Search Console ownership token. Leave empty to omit. When set (paste
+# only the content value from the "HTML tag" verification method), a
+# google-site-verification meta tag is emitted on every page. Not a secret.
+GOOGLE_SITE_VERIFICATION = "SPSBdVI6zz76B4WefzfPsgfoS36OBi77laV7msCty68"
+
 # Upcoming studies shown in the "Coming soon" section on the index.
 # Each entry: {"name": "Display Name", "name_jp": "日本語", "note": "optional line"}.
 PLANNED_STUDIES = []
@@ -293,6 +298,11 @@ def build_seo_head(canonical_path: str, jsonld: dict | None = None) -> str:
     as a structured-data script. Returns markup ready to drop into {{seo_head}}.
     """
     parts = []
+    if GOOGLE_SITE_VERIFICATION:
+        parts.append(
+            '<meta name="google-site-verification" content="'
+            f'{html_lib.escape(GOOGLE_SITE_VERIFICATION, quote=True)}">'
+        )
     url = page_url(canonical_path)
     if url:
         parts.append(f'<link rel="canonical" href="{html_lib.escape(url, quote=True)}">')
