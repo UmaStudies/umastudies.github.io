@@ -32,9 +32,9 @@ SITE_AUTHOR = "Isackj07"
 FEEDBACK_FORM_ACTION = "https://formspree.io/f/mwvzgndg"
 
 # Public base URL of the deployed site. Used for absolute share-image and RSS
-# links. Set to the GitHub Pages project URL. Change this if a custom domain
-# is added later.
-SITE_URL = "https://ketiakhitam.github.io/UmaTools"
+# links. Org Pages site served at the domain root (no project subpath). Change
+# this if a custom domain is added later.
+SITE_URL = "https://umastudies.github.io"
 
 # Google Search Console ownership token. Leave empty to omit. When set (paste
 # only the content value from the "HTML tag" verification method), a

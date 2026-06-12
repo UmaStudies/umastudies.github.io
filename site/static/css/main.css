@@ -709,7 +709,6 @@ pre code {
   letter-spacing: -0.02em;
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
 }
 
 .site-logo:hover {
@@ -725,6 +724,9 @@ pre code {
   width: 1.5em;
   height: 1.5em;
   flex-shrink: 0;
+  /* Spacing lives on the mark, not on the flex gap. A gap would also separate
+     the "Uma" span from the bare "Studies" text node, splitting the wordmark. */
+  margin-right: var(--space-sm);
   /* Tints the book+horseshoe mark to the page's accent, so it is green on the
      index and takes each character's color on their study page. */
   background-color: var(--accent-primary);
