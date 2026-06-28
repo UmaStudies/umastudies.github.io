@@ -15,6 +15,10 @@ venvsumatools/
 # Conversion tools (not part of the website)
 convert_docs.py
 scraper.py
+card_scraper.py
+
+# Scraper output (working drafts and raw dumps, not site content)
+output/
 
 # HTML transcripts
 recon_main.html
@@ -27,3 +31,4 @@ site/dist/
 .DS_Store
 Thumbs.db
 desktop.ini
+.gstack/

@@ -5,7 +5,7 @@
    ========================================================================== */
 
 /* --- Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&family=Inter:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&family=Inter:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap');
 
 /* --- Base Theme (Index / Default) --- */
 :root {
@@ -100,6 +100,118 @@
   --link-hover: #7B6BA6;
   --divider: #2A2735;
   --code-bg: #15131D;
+}
+
+
+/* --- Curren Bouquetd'or -- Cream / Brown / Gold (light) ---
+   The only light study. Palette drawn from her racing dress: warm cream
+   ground, deep brown ink (her hair), antique-gold accent (the "d'or").
+   A light page needs the text variables overridden too, unlike the dark
+   character themes which inherit the default light-on-dark text. */
+[data-character="curren-bouquetdor"] {
+  --accent-primary: #B0894E;
+  --accent-secondary: #9C7438;
+  --accent-glow: rgba(176, 137, 78, 0.18);
+
+  --bg-primary: #F7F1E4;
+  --bg-secondary: #F1E8D6;
+  --bg-tertiary: #EADFC9;
+  --bg-card: #FBF6EB;
+  --bg-card-hover: #F3E9D5;
+
+  --text-primary: #3D3027;
+  --text-secondary: #6B5A49;
+  --text-tertiary: #978470;
+  --text-heading: #2C231C;
+
+  --quote-border: #B0894E;
+  --quote-bg: rgba(176, 137, 78, 0.09);
+  --link-color: #8A6630;
+  --link-hover: #6E4F22;
+  --divider: #E0D4BC;
+  --code-bg: #EFE5D0;
+
+  /* Her own display face. Cormorant Garamond -- delicate, literary, high
+     contrast. Scoped to her headings so the site keeps one body type system
+     while her page still reads as unmistakably hers. */
+  --font-display: 'Cormorant Garamond', 'Source Serif 4', Georgia, serif;
+}
+
+/* Curren headings in her display face. Cormorant has a small x-height, so it
+   runs heavier in weight and a touch larger to hold presence at title size. */
+[data-character="curren-bouquetdor"] .study-header h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+[data-character="curren-bouquetdor"] .study-subtitle {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+[data-character="curren-bouquetdor"] .study-content h2,
+[data-character="curren-bouquetdor"] .study-content h2.part-heading .part-title,
+[data-character="curren-bouquetdor"] .study-content h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+[data-character="curren-bouquetdor"] .study-content h2.part-heading .part-num {
+  font-family: var(--font-display);
+}
+
+/* The shared fixed nav bar fades through a hardcoded near-black middle stop
+   (rgba(12,12,14,.95)) that blends fine on the dark studies but renders as an
+   odd dark blurry band across the top of her light page. Refade it to cream
+   for her only; the dark studies keep the original. */
+[data-character="curren-bouquetdor"] .site-header {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-primary) 0%,
+    rgba(247, 241, 228, 0.92) 60%,
+    transparent 100%
+  );
+}
+
+/* Curren's header art is a banner, not a ghost. The dark studies render the
+   header image at 8% opacity, blurred and desaturated; her MainSSR card is the
+   point, so show it. The overlay keeps a cream wash over the middle and full
+   cream at top/bottom so the dark hero text stays legible over the art. */
+[data-character="curren-bouquetdor"] .study-header .header-bg {
+  opacity: 0.62;
+  filter: saturate(0.95);
+  background-position: center 14%;
+}
+[data-character="curren-bouquetdor"] .study-header .header-overlay {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-primary) 0%,
+    rgba(247, 241, 228, 0.34) 30%,
+    rgba(247, 241, 228, 0.34) 64%,
+    var(--bg-primary) 100%
+  );
+}
+/* Cream halo so dark hero text reads cleanly over the bright card art. */
+[data-character="curren-bouquetdor"] .study-header .study-epithet,
+[data-character="curren-bouquetdor"] .study-header h1,
+[data-character="curren-bouquetdor"] .study-header .character-name-jp,
+[data-character="curren-bouquetdor"] .study-header .study-meta,
+[data-character="curren-bouquetdor"] .study-header .study-subtitle {
+  text-shadow: 0 1px 10px var(--bg-primary), 0 0 4px var(--bg-primary);
+}
+
+/* Curren only -- the red-rose / blue-rose pull-quote accents. She reads
+   people as colored flowers (red rose = passion she cannot match; blue rose
+   = the impossible made real). These tag a small number of quotes where the
+   text itself invokes those colors. Each just re-points the quote-local
+   variables, so the existing blockquote styles do the rest. */
+[data-character="curren-bouquetdor"] blockquote.rose-red {
+  --quote-border: #C05A63;
+  --quote-bg: rgba(192, 90, 99, 0.08);
+  --accent-glow: rgba(192, 90, 99, 0.14);
+}
+[data-character="curren-bouquetdor"] blockquote.rose-blue {
+  --quote-border: #5E7FB0;
+  --quote-bg: rgba(94, 127, 176, 0.08);
+  --accent-glow: rgba(94, 127, 176, 0.14);
 }
 
 
@@ -1087,6 +1199,16 @@ pre code {
     0 0 0 1px var(--accent-glow);
 }
 
+/* Curren race-dress portrait and sweet-pea cutout -- transparent images meant
+   to sit flush on the page. Drop the card border/shadow so they read as part
+   of the background. */
+.study-content figure.study-figure img[src$="race_dress.webp"],
+.study-content figure.study-figure img[src$="sweet_pea.webp"] {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .study-content figure.study-figure figcaption {
   margin-top: var(--space-sm);
   font-family: var(--font-sans);
@@ -1448,7 +1570,8 @@ body.zen-mode .toc-toggle .icon-zen { display: inline; }
    "Perfect love is like flame. Never the same shape for an instant."
    ========================================================================== */
 
-blockquote {
+/* Opt-in per character (Ramonu/flame). Other studies keep static quote borders. */
+body[data-fx-flame] blockquote {
   animation: flamePulse 5s ease-in-out infinite;
 }
 
@@ -1459,10 +1582,10 @@ blockquote {
 }
 
 /* Stagger the pulse so no two quotes breathe identically */
-blockquote:nth-of-type(2n) { animation-duration: 6s; animation-delay: -1s; }
-blockquote:nth-of-type(3n) { animation-duration: 4.5s; animation-delay: -2s; }
-blockquote:nth-of-type(5n) { animation-duration: 5.5s; animation-delay: -0.5s; }
-blockquote:nth-of-type(7n) { animation-duration: 7s; animation-delay: -3s; }
+body[data-fx-flame] blockquote:nth-of-type(2n) { animation-duration: 6s; animation-delay: -1s; }
+body[data-fx-flame] blockquote:nth-of-type(3n) { animation-duration: 4.5s; animation-delay: -2s; }
+body[data-fx-flame] blockquote:nth-of-type(5n) { animation-duration: 5.5s; animation-delay: -0.5s; }
+body[data-fx-flame] blockquote:nth-of-type(7n) { animation-duration: 7s; animation-delay: -3s; }
 
 
 /* ==========================================================================

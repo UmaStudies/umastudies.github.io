@@ -22,15 +22,10 @@
   <!-- Canonical, og:url/site_name, structured data -->
   {{seo_head}}
 </head>
-<body data-character="{{character}}">
+<body data-character="{{character}}"{{body_fx}}>
 
-  <!-- Particle embers -->
-  <div class="ember" aria-hidden="true"></div>
-  <div class="ember" aria-hidden="true"></div>
-  <div class="ember" aria-hidden="true"></div>
-  <div class="ember" aria-hidden="true"></div>
-  <div class="ember" aria-hidden="true"></div>
-  <div class="ember" aria-hidden="true"></div>
+  <!-- Particle effects (per-character, opt-in via CHARACTER_FX) -->
+  {{embers}}
 
   <!-- Header -->
   <header class="site-header">
@@ -89,8 +84,8 @@
     If you spot an error, I welcome corrections.
   </div>
 
-  <!-- Reading progress gem (bottom right) -->
-  <div class="progress-gem" id="progress-gem" aria-hidden="true"></div>
+  <!-- Reading progress gem (bottom right, per-character opt-in) -->
+  {{progress_gem}}
 
   <!-- Collapsed contents (small screens only; floating sidebar is hidden there) -->
   {{mobile_toc}}
@@ -226,9 +221,11 @@
     // --- Pleochroic color shift + progress gem ---
     // As you scroll, the accent hue shifts: violet(275) -> blue(230) -> burgundy(340)
     // The progress gem rotates to show different facets.
+    // Opt-in per character (Ramonu/tanzanite). Other studies keep their static
+    // CSS palette so each page stays its own pocket dimension.
     (function() {
       var body = document.body;
-      if (!body.dataset.character) return;
+      if (body.dataset.fxPleochroic !== 'true') return;
 
       var gem = document.getElementById('progress-gem');
 

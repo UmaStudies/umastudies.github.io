@@ -46,6 +46,24 @@ GOOGLE_SITE_VERIFICATION = "SPSBdVI6zz76B4WefzfPsgfoS36OBi77laV7msCty68"
 PLANNED_STUDIES = []
 
 
+# Per-character theatrical effects. Each study is its own pocket dimension: a
+# flourish belongs to exactly one character and must not bleed onto another.
+# Effects are opt-in here by slug. Anything not listed gets a clean page driven
+# only by its own CSS palette. Keys:
+#   embers      -- floating ember particles
+#   gem         -- rotating gemstone progress indicator (bottom right)
+#   pleochroic  -- scroll-driven accent hue shift (overrides the CSS accent)
+#   flame_quotes-- blockquote borders flicker like flame
+CHARACTER_FX = {
+    "mejiro-ramonu": {
+        "embers": True,
+        "gem": True,
+        "pleochroic": True,
+        "flame_quotes": True,
+    },
+}
+
+
 # Front matter delimiter. Each .md study file should start with a YAML-like
 # block between --- markers containing metadata.
 FRONT_MATTER_PATTERN = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
@@ -368,6 +386,26 @@ def build_study(md_path: Path) -> dict:
     reading_min = estimate_reading_time(body)
     words = word_count(body)
 
+    # Per-character theatrics. Only emit the markup/attributes for effects this
+    # character opts into, so one study's flourishes never appear on another.
+    fx = CHARACTER_FX.get(character, {})
+    embers_html = (
+        '\n  '.join('<div class="ember" aria-hidden="true"></div>' for _ in range(6))
+        if fx.get("embers")
+        else ""
+    )
+    progress_gem_html = (
+        '<div class="progress-gem" id="progress-gem" aria-hidden="true"></div>'
+        if fx.get("gem")
+        else ""
+    )
+    # Body data attributes read by the inline JS / CSS to gate scroll effects.
+    body_fx = ""
+    if fx.get("pleochroic"):
+        body_fx += ' data-fx-pleochroic="true"'
+    if fx.get("flame_quotes"):
+        body_fx += ' data-fx-flame="true"'
+
     # Render into study template
     template = load_template("study.html")
     header_image = meta.get("header_image", "")
@@ -455,6 +493,9 @@ def build_study(md_path: Path) -> dict:
         "epigraph": epigraph_html,
         "og_image": og_image,
         "header_bg": header_bg,
+        "embers": embers_html,
+        "progress_gem": progress_gem_html,
+        "body_fx": body_fx,
         "site_author": SITE_AUTHOR,
         "year": str(datetime.now().year),
     })

@@ -54,7 +54,7 @@ This is the keystone. Nothing else in the character makes sense without it, and 
 
 ### The facts
 
-As a foal, Ramonu's legs were weak (足元に不安があり). Doctors weren't sure she'd ever race. She was also physically frail in general — her sister Mejiro Ardan was sickly too, and the career story notes the two of them shared a sickbed as small children. During the Mejiro family's annual **winter training camp**, the other children did snow training. Ramonu physically could not. So she sat alone in the lodge, watching them run through a window, and she painted.
+As a child, Ramonu's legs were weak (足元に不安があり). Doctors weren't sure she'd ever race. She was also physically frail in general — her sister Mejiro Ardan was sickly too, and the career story notes the two of them shared a sickbed as small children. During the Mejiro family's annual **winter training camp**, the other children did snow training. Ramonu physically could not. So she sat alone in the lodge, watching them run through a window, and she painted.
 
 ### The child's own words
 
