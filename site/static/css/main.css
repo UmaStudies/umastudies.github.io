@@ -1129,16 +1129,11 @@ pre code {
   max-width: 250px;
   height: auto;
   pointer-events: none;
-  /* Fade the left and bottom edges so the cutout melts into the card instead
-     of reading as a pasted rectangle. */
-  -webkit-mask-image:
-    linear-gradient(to left, #000 55%, transparent 100%),
-    linear-gradient(to top, #000 80%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to left, #000 55%, transparent 100%),
-    linear-gradient(to top, #000 80%, transparent 100%);
-  mask-composite: intersect;
+  /* Fade the left edge so the cutout melts into the card instead of reading as
+     a pasted rectangle. Single-layer mask only: iOS Safari renders nothing when
+     multiple mask layers are combined with mask-composite. */
+  -webkit-mask-image: linear-gradient(to left, #000 60%, transparent 100%);
+  mask-image: linear-gradient(to left, #000 60%, transparent 100%);
   opacity: 0.95;
   transition: transform var(--duration-base) var(--ease-out);
 }
