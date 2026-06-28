@@ -1129,11 +1129,8 @@ pre code {
   max-width: 250px;
   height: auto;
   pointer-events: none;
-  /* Fade the left edge so the cutout melts into the card instead of reading as
-     a pasted rectangle. Single-layer mask only: iOS Safari renders nothing when
-     multiple mask layers are combined with mask-composite. */
-  -webkit-mask-image: linear-gradient(to left, #000 60%, transparent 100%);
-  mask-image: linear-gradient(to left, #000 60%, transparent 100%);
+  /* No CSS mask. The art is already a transparent cutout so it needs no fade to
+     avoid a rectangular edge, and iOS Safari blanks masked images. */
   opacity: 0.95;
   transition: transform var(--duration-base) var(--ease-out);
 }
