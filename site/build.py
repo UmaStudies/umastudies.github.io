@@ -8,6 +8,7 @@ import os
 import re
 import json
 import math
+import hashlib
 import html as html_lib
 from pathlib import Path
 from datetime import datetime, timezone
@@ -288,11 +289,41 @@ def load_template(name: str) -> str:
         return f.read()
 
 
+_CSS_VERSION = None
+
+
+def css_version() -> str:
+    """Short content hash of main.css for cache-busting the stylesheet URL.
+
+    GitHub Pages serves static assets with a 10 minute cache and no version in
+    the URL, so browsers (iOS Safari especially) keep serving a stale main.css
+    across deploys. Appending ?v=<hash> makes each CSS change a new URL.
+    Computed once per build and cached.
+    """
+    global _CSS_VERSION
+    if _CSS_VERSION is None:
+        css_path = STATIC_DIR / "css" / "main.css"
+        try:
+            _CSS_VERSION = hashlib.sha1(css_path.read_bytes()).hexdigest()[:8]
+        except OSError:
+            # No stylesheet on disk is a real build problem, but versioning is
+            # not the place to fail the build. Fall back to an unversioned URL.
+            _CSS_VERSION = ""
+    return _CSS_VERSION
+
+
 def render_template(template: str, context: dict) -> str:
     """Simple placeholder replacement. Uses {{key}} syntax."""
     result = template
     for key, value in context.items():
         result = result.replace("{{" + key + "}}", str(value))
+    # Cache-bust the stylesheet so deploys are picked up immediately.
+    version = css_version()
+    if version:
+        result = result.replace(
+            'href="static/css/main.css"',
+            f'href="static/css/main.css?v={version}"',
+        )
     return result
 
 
