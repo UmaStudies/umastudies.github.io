@@ -533,18 +533,38 @@ def build_index(studies: list[dict]) -> None:
         card_title_jp = html_lib.escape(study["title_jp"])
         card_excerpt = html_lib.escape(study["excerpt"])
         card_url = html_lib.escape(study["url"], quote=True)
+
+        # Optional per-character card art. Auto-included when a card_art.webp
+        # exists in the character's image folder; cards without one render
+        # text-only. Cropped/anchored via the .study-card.has-art CSS.
+        character = study["character"]
+        art_rel = f"static/images/characters/{character}/card_art.webp"
+        has_art = (STATIC_DIR / "images" / "characters" / character / "card_art.webp").exists()
+        if has_art:
+            art_alt = html_lib.escape(study["title"], quote=True)
+            art_html = (
+                f'\n      <img class="card-art" src="{art_rel}" alt="{art_alt}"'
+                ' loading="lazy" decoding="async" aria-hidden="true">'
+            )
+            card_class = "study-card has-art fade-in-up"
+        else:
+            art_html = ""
+            card_class = "study-card fade-in-up"
+
         card = f"""
-    <a href="{card_url}" class="study-card fade-in-up"
-       style="--card-accent: var(--accent-primary)">
-      <div class="card-character">{card_title}</div>
-      <div class="card-character-jp">{card_title_jp}</div>
-      <div class="card-excerpt">{card_excerpt}</div>
-      <div class="card-meta">
-        <span>{study['date']}</span>
-        <span class="card-meta-divider"></span>
-        <span>{study['word_count']:,} words</span>
-        <span class="card-meta-divider"></span>
-        <span>{study['reading_time']} min read</span>
+    <a href="{card_url}" class="{card_class}"
+       style="--card-accent: var(--accent-primary)">{art_html}
+      <div class="card-body">
+        <div class="card-character">{card_title}</div>
+        <div class="card-character-jp">{card_title_jp}</div>
+        <div class="card-excerpt">{card_excerpt}</div>
+        <div class="card-meta">
+          <span>{study['date']}</span>
+          <span class="card-meta-divider"></span>
+          <span>{study['word_count']:,} words</span>
+          <span class="card-meta-divider"></span>
+          <span>{study['reading_time']} min read</span>
+        </div>
       </div>
     </a>"""
         cards_html.append(card)
