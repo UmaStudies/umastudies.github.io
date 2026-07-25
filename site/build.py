@@ -47,6 +47,25 @@ GOOGLE_SITE_VERIFICATION = "SPSBdVI6zz76B4WefzfPsgfoS36OBi77laV7msCty68"
 PLANNED_STUDIES = []
 
 
+# Landing-page hero background. Optimized card art from static/images/hero-cards
+# is arranged either as a scrolling film strip (ordered, a record of stories) or
+# a drifting card field (scattered, dreamlike). Index page only.
+#   HERO_MODE         default effect: "filmstrip" | "drift" | "off"
+#   HERO_SHOW_TOGGLE  render an on-page Film/Drift/Off switch to compare modes.
+#                     This is the instant kill switch and the prototype control;
+#                     set False for production once a mode is locked in.
+#   HERO_ROWS         number of film-strip rows.
+#   HERO_DRIFT_COUNT  number of cards floating in drift mode.
+# The effect degrades to a still field when JS is off, a card image 404s, or the
+# visitor requests reduced motion. Setting HERO_MODE="off" (toggle off too)
+# emits no stage markup at all and restores the plain hero.
+HERO_MODE = "filmstrip"
+HERO_SHOW_TOGGLE = True
+HERO_ROWS = 3
+HERO_DRIFT_COUNT = 8
+HERO_CARDS_DIR = "static/images/hero-cards"
+
+
 # Per-character theatrical effects. Each study is its own pocket dimension: a
 # flourish belongs to exactly one character and must not bleed onto another.
 # Effects are opt-in here by slug. Anything not listed gets a clean page driven
@@ -550,6 +569,260 @@ def build_study(md_path: Path) -> dict:
     }
 
 
+# Inline script for the hero background: restores the last-compared mode,
+# wires the toggle, and swaps a drift card to a new face on each full float
+# cycle. Placeholders are filled by build_hero_assets. Kept inline so it needs
+# no separate cache-busted asset.
+_HERO_SCRIPT_TEMPLATE = """<script>
+(function () {
+  var DEFAULT_MODE = "__DEFAULT_MODE__";
+  var SHOW_TOGGLE = __SHOW_TOGGLE__;
+  var CARDS = __CARDS__;
+  var body = document.body;
+  var KEY = "umastudies-hero-mode";
+  var VALID = { filmstrip: 1, drift: 1, off: 1 };
+
+  // Drift is film-only on phones (it reads poorly on a narrow screen), so a
+  // requested "drift" resolves to "filmstrip" while the mobile query matches.
+  var mqMobile = window.matchMedia("(max-width: 640px)");
+  var requested = DEFAULT_MODE;
+
+  function effective(mode) {
+    return (mqMobile.matches && mode === "drift") ? "filmstrip" : mode;
+  }
+
+  var MENU_LABELS = { filmstrip: "Film", drift: "Drift", off: "Off" };
+
+  function applyMode(mode) {
+    requested = mode;
+    var eff = effective(mode);
+    body.setAttribute("data-hero-mode", eff);
+    if (SHOW_TOGGLE) {
+      var items = document.querySelectorAll(".hero-menu-list button");
+      for (var i = 0; i < items.length; i++) {
+        items[i].setAttribute("aria-checked",
+          items[i].getAttribute("data-mode") === eff ? "true" : "false");
+      }
+      var label = document.querySelector(".hero-menu-label");
+      if (label) label.textContent = MENU_LABELS[eff] || eff;
+    }
+  }
+
+  // Ignore a stale stored mode (e.g. a retired concept) so it cannot break the
+  // hero; fall back to the default.
+  var stored = null;
+  try { stored = localStorage.getItem(KEY); } catch (e) {}
+  if (!VALID[stored]) stored = null;
+  applyMode(SHOW_TOGGLE && stored ? stored : DEFAULT_MODE);
+
+  // Re-resolve when crossing the mobile breakpoint (rotate / resize).
+  if (mqMobile.addEventListener) {
+    mqMobile.addEventListener("change", function () { applyMode(requested); });
+  }
+
+  if (SHOW_TOGGLE) {
+    var menu = document.querySelector(".hero-menu");
+    if (menu) {
+      var trigger = menu.querySelector(".hero-menu-trigger");
+      var list = menu.querySelector(".hero-menu-list");
+      function setOpen(open) {
+        menu.setAttribute("data-open", open ? "true" : "false");
+        trigger.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+      trigger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setOpen(menu.getAttribute("data-open") !== "true");
+      });
+      list.addEventListener("click", function (e) {
+        var b = e.target.closest("button");
+        if (!b) return;
+        var mode = b.getAttribute("data-mode");
+        applyMode(mode);
+        try { localStorage.setItem(KEY, mode); } catch (e2) {}
+        setOpen(false);
+      });
+      document.addEventListener("click", function (e) {
+        if (!menu.contains(e.target)) setOpen(false);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") setOpen(false);
+      });
+    }
+  }
+
+  // Drift: cards float in place. Each completed float cycle fades the card and
+  // swaps in a new face (display:none halts the animation, so no swaps fire
+  // while another mode is up). Hovering a card spins it and swaps its face at
+  // the hidden mid-point of the turn.
+  function randCard() { return CARDS[Math.floor(Math.random() * CARDS.length)]; }
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".drift-card"));
+
+  Array.prototype.forEach.call(cards, function (card) {
+    var img = card.querySelector("img");
+    if (!img) return;
+
+    card.addEventListener("animationiteration", function () {
+      if (card.classList.contains("is-spinning")) return;
+      img.style.opacity = "0";
+      setTimeout(function () { img.src = randCard(); img.style.opacity = ""; }, 650);
+    });
+
+    card.addEventListener("mouseenter", function () {
+      if (card.classList.contains("is-spinning")) return;
+      card.classList.add("is-spinning");
+      setTimeout(function () { img.src = randCard(); }, 450); // swap while edge-on
+      setTimeout(function () { card.classList.remove("is-spinning"); }, 900);
+    });
+  });
+})();
+</script>"""
+
+
+def build_hero_assets() -> dict:
+    """Build the landing-page hero background (film strip and drift field).
+
+    Reads optimized card webps from HERO_CARDS_DIR and returns the stage markup,
+    the body data attribute carrying the default mode, and the inline script.
+    Returns empty strings when there are no cards or the feature is fully off.
+    Uses a fixed RNG seed so repeated builds are byte-stable (no git churn).
+    """
+    import random
+
+    cards_dir = STATIC_DIR / "images" / "hero-cards"
+    card_files = (
+        sorted(p.name for p in cards_dir.glob("*.webp")) if cards_dir.exists() else []
+    )
+
+    feature_on = bool(card_files) and (HERO_MODE != "off" or HERO_SHOW_TOGGLE)
+    if not feature_on:
+        return {"hero_body_attr": "", "hero_stage": "", "hero_menu": "", "hero_script": ""}
+
+    rel = [f"{HERO_CARDS_DIR}/{name}" for name in card_files]
+    rng = random.Random(42)
+
+    # Film strip: HERO_ROWS rows, alternating scroll direction, each a shuffled
+    # ordering of the full set duplicated so the CSS translate loop is seamless.
+    # A frame that fails to load removes itself so the strip does not gap-stall.
+    rows_html = []
+    for i in range(HERO_ROWS):
+        order = rel[:]
+        rng.shuffle(order)
+        frames = "".join(
+            f'<div class="film-frame"><img src="{src}" alt="" loading="lazy" '
+            "decoding=\"async\" onerror=\"this.closest('.film-frame').remove()\">"
+            "</div>"
+            for src in order
+        )
+        direction = "reverse" if i % 2 else "normal"
+        # Duration scales with the card count so the on-screen scroll SPEED
+        # (pixels/second) stays constant as cards are added: the track grows
+        # longer, so the time to cross it must grow with it. 32 is the count the
+        # 88s/16s timing was tuned at. Lower rows are slower for parallax.
+        dur = round((len(rel) / 32) * (88 + i * 16), 1)
+        rows_html.append(
+            f'<div class="filmstrip-row" style="--film-dur:{dur}s;'
+            f'--film-dir:{direction}">'
+            f'<div class="filmstrip-track">{frames}{frames}</div></div>'
+        )
+    filmstrip_html = f'<div class="filmstrip-layer">{"".join(rows_html)}</div>'
+
+    # Drift field: a jittered grid so cards spread evenly instead of clumping,
+    # then float. left/top are the card CENTER (the CSS keyframe translates
+    # -50%,-50%). Placed server-side so a no-JS visitor still sees a static field.
+    #
+    # Positions use a DEDICATED rng, decoupled from the film strip AND the card
+    # count, so adding cards never shifts the drift layout again. shuffle()
+    # consumption depends only on list LENGTH, so replaying the tuning-time
+    # consumption (Random(42), then HERO_ROWS strip shuffles plus one pool
+    # shuffle, all at the count the layout was approved under) reproduces the
+    # exact approved positions and freezes them. Which faces appear uses a
+    # separate rng, so it can still draw from the full, growing pool.
+    n_drift = min(HERO_DRIFT_COUNT, len(rel))
+    cols = 4 if n_drift >= 7 else 3
+    rows = math.ceil(n_drift / cols)
+    cell_w = 100 / cols
+    cell_h = 100 / rows
+
+    DRIFT_TUNED_COUNT = 32
+    pos_rng = random.Random(42)
+    _warm = list(range(DRIFT_TUNED_COUNT))
+    for _ in range(HERO_ROWS + 1):
+        pos_rng.shuffle(_warm)
+
+    pick_rng = random.Random(99)
+    drift_pool = rel[:]
+    pick_rng.shuffle(drift_pool)
+
+    drift_cards = []
+    for i in range(n_drift):
+        src = drift_pool[i]
+        col = i % cols
+        row = i // cols
+        left = (col + 0.5) * cell_w + pos_rng.uniform(-cell_w * 0.24, cell_w * 0.24)
+        top = (row + 0.5) * cell_h + pos_rng.uniform(-cell_h * 0.24, cell_h * 0.24)
+        left = max(8, min(92, left))
+        # top floor keeps the tallest card clear of the header at the stage top
+        top = max(18, min(86, top))
+        tilt = pos_rng.uniform(-11, 11)
+        dur = pos_rng.uniform(24, 40)  # slow, dreamlike
+        delay = pos_rng.uniform(-40, 0)  # negative desyncs the starting phase
+        width = pos_rng.uniform(118, 168)
+        opacity = pos_rng.uniform(0.74, 1.0)  # depth: some windows farther away
+        drift_cards.append(
+            f'<div class="drift-card" style="left:{left:.1f}%;top:{top:.1f}%;'
+            f'--tilt:{tilt:.1f}deg;--drift-dur:{dur:.1f}s;'
+            f'--drift-delay:{delay:.1f}s;--drift-op:{opacity:.2f};'
+            f'width:{width:.0f}px">'
+            f'<img src="{src}" alt="" loading="lazy" decoding="async" '
+            "onerror=\"this.closest('.drift-card').remove()\"></div>"
+        )
+    drift_html = f'<div class="drift-layer">{"".join(drift_cards)}</div>'
+
+    stage = (
+        '<div class="hero-stage" aria-hidden="true">'
+        + filmstrip_html
+        + drift_html
+        + '<div class="hero-scrim"></div>'
+        + "</div>"
+    )
+
+    # Mode control: a small dropdown that lives in the top nav (see the
+    # {{hero_menu}} slot in index.html). This is the prototype/kill-switch
+    # control; drop it for production by setting HERO_SHOW_TOGGLE = False.
+    menu = ""
+    if HERO_SHOW_TOGGLE:
+        modes = (("filmstrip", "Film"), ("drift", "Drift"), ("off", "Off"))
+        items = "".join(
+            f'<button type="button" role="menuitemradio" data-mode="{m}">{label}</button>'
+            for m, label in modes
+        )
+        current_label = dict(modes).get(HERO_MODE, "Film")
+        menu = (
+            '<div class="hero-menu" data-open="false">'
+            '<button type="button" class="hero-menu-trigger" '
+            'aria-haspopup="true" aria-expanded="false">'
+            '<span class="hero-menu-eyebrow">Hero</span>'
+            f'<span class="hero-menu-label">{current_label}</span>'
+            '<span class="hero-menu-caret" aria-hidden="true">&#9662;</span>'
+            "</button>"
+            f'<div class="hero-menu-list" role="menu">{items}</div>'
+            "</div>"
+        )
+
+    script = (
+        _HERO_SCRIPT_TEMPLATE.replace("__DEFAULT_MODE__", HERO_MODE)
+        .replace("__SHOW_TOGGLE__", "true" if HERO_SHOW_TOGGLE else "false")
+        .replace("__CARDS__", json.dumps(rel))
+    )
+
+    return {
+        "hero_body_attr": f' data-hero-mode="{HERO_MODE}"',
+        "hero_stage": stage,
+        "hero_menu": menu,
+        "hero_script": script,
+    }
+
+
 def build_index(studies: list[dict]) -> None:
     """Build the index page listing all studies."""
     # Sort by date descending
@@ -620,7 +893,7 @@ def build_index(studies: list[dict]) -> None:
         planned_html = ""
 
     template = load_template("index.html")
-    html = render_template(template, {
+    context = {
         "site_title": SITE_TITLE,
         "seo_head": build_seo_head(""),
         "site_title_jp": SITE_TITLE_JP,
@@ -630,7 +903,9 @@ def build_index(studies: list[dict]) -> None:
         "study_count": str(len(studies)),
         "site_author": SITE_AUTHOR,
         "year": str(datetime.now().year),
-    })
+    }
+    context.update(build_hero_assets())
+    html = render_template(template, context)
 
     out_path = DIST_DIR / "index.html"
     with open(out_path, "w", encoding="utf-8") as f:

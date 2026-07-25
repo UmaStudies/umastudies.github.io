@@ -19,7 +19,7 @@
   <!-- Canonical, og:url/site_name -->
   {{seo_head}}
 </head>
-<body>
+<body{{hero_body_attr}}>
 
   <!-- Ambient embers (reused from the study pages; hidden on mobile and under
        prefers-reduced-motion via CSS) -->
@@ -44,21 +44,27 @@
         About
         <span class="nav-label-jp">概要</span>
       </a>
+      {{hero_menu}}
     </nav>
   </header>
 
-  <!-- Hero -->
-  <section class="index-hero">
-    <img class="hero-logo" src="static/favicon.svg" alt="" width="76" height="76" aria-hidden="true">
-    <h1>{{site_title}}</h1>
-    <p class="index-subtitle">
-      In-depth character studies exploring the writing, lore, history,
-      and real-horse connections behind every Umamusume.
-    </p>
-    <p class="index-subtitle-jp">
-      {{site_title_jp}} &mdash; ウマ娘キャラクター研究
-    </p>
-  </section>
+  <!-- Hero zone: the background stage (film strip / drift field, index only,
+       empty when the feature is off) is bounded to this wrapper so it fills the
+       hero and never reaches the studies. See build_hero_assets in build.py. -->
+  <div class="hero-zone">
+    {{hero_stage}}
+    <section class="index-hero">
+      <img class="hero-logo" src="static/favicon.svg" alt="" width="76" height="76" aria-hidden="true">
+      <h1>{{site_title}}</h1>
+      <p class="index-subtitle">
+        In-depth character studies exploring the writing, lore, history,
+        and real-horse connections behind every Umamusume.
+      </p>
+      <p class="index-subtitle-jp">
+        {{site_title_jp}} &mdash; ウマ娘キャラクター研究
+      </p>
+    </section>
+  </div>
 
   <!-- Studies Grid -->
   <section class="studies-grid" id="studies">
@@ -79,5 +85,6 @@
     </p>
   </footer>
 
+  {{hero_script}}
 </body>
 </html>

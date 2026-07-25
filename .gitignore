@@ -27,6 +27,10 @@ recon_transcript.html
 # Build output (regenerated from source)
 site/dist/
 
+# Hero-card raw originals (source for the optimizer; only the downscaled
+# copies in site/static/images/hero-cards/ are shipped)
+site/hero-cards-src/
+
 # OS files
 .DS_Store
 Thumbs.db

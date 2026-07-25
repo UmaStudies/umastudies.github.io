@@ -2319,3 +2319,310 @@ body[data-character] {
     transform: none !important;
   }
 }
+
+
+/* ==========================================================================
+   LANDING HERO BACKGROUND -- film strip / drift field
+   Index page only. Optimized card art from static/images/hero-cards, darkened
+   behind the hero text. The live mode is set by body[data-hero-mode]; the
+   default comes from HERO_MODE in build.py. Motion is neutralized by the
+   global prefers-reduced-motion block above (strip and field freeze to a
+   static image). Degrades to a still field when JS is off.
+   ========================================================================== */
+
+/* The stage is bounded to the hero zone, so the strip fills the hero and stops
+   there. The min-height (a tall enough canvas for the rows to clear the fixed
+   header) applies only while a mode is live, so "Off" collapses to a plain hero. */
+.hero-zone {
+  position: relative;
+}
+body[data-hero-mode]:not([data-hero-mode="off"]) .hero-zone {
+  min-height: min(720px, 92vh);
+}
+
+/* Top inset clears the fixed, blurred header: the strip and drift field start
+   below it instead of sliding under it and getting clipped/blurred. */
+.hero-stage {
+  position: absolute;
+  inset: 76px 0 0 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Hero text sits above the stage. */
+.index-hero {
+  position: relative;
+  z-index: 2;
+}
+
+/* Mode switching. Only the active layer is painted; the inactive one is pulled
+   from the flow so its animations halt (no offscreen work, no drift swaps). */
+body[data-hero-mode="filmstrip"] .drift-layer { display: none; }
+body[data-hero-mode="drift"] .filmstrip-layer { display: none; }
+body[data-hero-mode="off"] .hero-stage { display: none; }
+
+/* Scrim: darken the art so the hero text stays legible, and fade the bottom
+   edge into the page. The first radial darkens the CENTRE (behind the title
+   and subtitle); the art breathes at the edges. Dark values match the index
+   theme --bg-primary (#0C0C0E). */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    radial-gradient(ellipse 62% 46% at 50% 33%,
+      rgba(12, 12, 14, 0.85) 0%,
+      rgba(12, 12, 14, 0.45) 52%,
+      transparent 78%),
+    linear-gradient(to bottom,
+      rgba(12, 12, 14, 0.5) 0%,
+      rgba(12, 12, 14, 0.32) 30%,
+      rgba(12, 12, 14, 0.72) 80%,
+      var(--bg-primary) 100%);
+}
+
+/* Hero-text legibility over the moving art. Applied only when a background
+   mode is live, so the plain "off" hero keeps its original styling. The h1 has
+   gradient-clipped (transparent-fill) text, so text-shadow will not show on it;
+   filter: drop-shadow renders on the clipped shape instead. */
+body[data-hero-mode="filmstrip"] .index-subtitle,
+body[data-hero-mode="drift"] .index-subtitle,
+body[data-hero-mode="filmstrip"] .index-subtitle-jp,
+body[data-hero-mode="drift"] .index-subtitle-jp {
+  text-shadow: 0 1px 10px rgba(12, 12, 14, 0.92), 0 0 5px rgba(12, 12, 14, 0.8);
+}
+body[data-hero-mode="filmstrip"] .index-hero h1,
+body[data-hero-mode="drift"] .index-hero h1 {
+  filter: drop-shadow(0 2px 14px rgba(12, 12, 14, 0.8));
+}
+
+/* Film mode: a very slight extra touch of contrast on the hero copy. A tight,
+   low-blur dark shadow hugs the glyphs to lift local contrast over the busy
+   strip, without darkening the film itself. */
+body[data-hero-mode="filmstrip"] .index-subtitle,
+body[data-hero-mode="filmstrip"] .index-subtitle-jp {
+  text-shadow:
+    0 1px 10px rgba(12, 12, 14, 0.95),
+    0 0 6px rgba(12, 12, 14, 0.9),
+    0 0 2px rgba(12, 12, 14, 0.9);
+}
+body[data-hero-mode="filmstrip"] .index-hero h1 {
+  filter:
+    drop-shadow(0 2px 14px rgba(12, 12, 14, 0.82))
+    drop-shadow(0 0 3px rgba(12, 12, 14, 0.7));
+}
+
+/* -------- Film strip -------- */
+.filmstrip-layer,
+.drift-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.filmstrip-layer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  height: 100%;
+  padding: 24px 0;
+}
+
+/* One strip of film: black base, perforated top and bottom edges. */
+.filmstrip-row {
+  position: relative;
+  overflow: hidden;
+  padding: 15px 0;
+  background: #050505;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* The moving track: card set duplicated, translated -50% for a seamless loop. */
+.filmstrip-track {
+  display: flex;
+  gap: 6px; /* black gutter between frames */
+  width: max-content;
+  height: 100%;
+  align-items: center;
+  will-change: transform;
+  animation: filmScroll var(--film-dur, 60s) linear infinite;
+  animation-direction: var(--film-dir, normal);
+}
+
+.film-frame {
+  flex: 0 0 auto;
+  height: 152px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: #000;
+  border-radius: 2px;
+}
+
+.film-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@keyframes filmScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* -------- Drift field -------- */
+.drift-layer {
+  perspective: 1200px;
+}
+
+.drift-card {
+  position: absolute;
+  aspect-ratio: 3 / 4;
+  opacity: var(--drift-op, 1); /* depth: some windows sit farther back */
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: auto; /* re-enable hover; the stage itself is pass-through */
+  cursor: pointer;
+  filter: drop-shadow(0 16px 38px rgba(0, 0, 0, 0.5));
+  animation: driftFloat var(--drift-dur, 22s) ease-in-out infinite;
+  animation-delay: var(--drift-delay, 0s);
+}
+
+/* Hovered card lifts above the scrim so it reads vivid, then spins. */
+.drift-card:hover { z-index: 5; }
+
+.drift-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: opacity 0.6s ease; /* per-cycle face fade */
+}
+
+/* Hover spin: one full turn; JS swaps the face at the hidden mid-point. */
+.drift-card.is-spinning img {
+  animation: cardSpin 0.9s ease-in-out;
+}
+
+@keyframes cardSpin {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+/* Cards float in place. One full cycle returns to the start; JS swaps the face
+   on each cycle. The leading translate(-50%,-50%) makes left/top position the
+   card CENTRE, so the jittered grid spreads them evenly across the stage. */
+@keyframes driftFloat {
+  0% { transform: translate(-50%, -50%) translateY(0) rotate(var(--tilt, 0deg)) rotateY(-15deg); }
+  50% { transform: translate(-50%, -50%) translateY(-22px) rotate(calc(var(--tilt, 0deg) * -1)) rotateY(15deg); }
+  100% { transform: translate(-50%, -50%) translateY(0) rotate(var(--tilt, 0deg)) rotateY(-15deg); }
+}
+
+/* -------- Compare toggle (prototype control; gated by HERO_SHOW_TOGGLE) -------- */
+/* Hero mode control: a compact dropdown living in the top nav. */
+.hero-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.hero-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--divider, rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.hero-menu-trigger:hover {
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.hero-menu-eyebrow {
+  font-size: 0.66em;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-tertiary);
+}
+.hero-menu-label {
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.hero-menu-caret {
+  font-size: 0.7em;
+  opacity: 0.65;
+  transition: transform 0.2s ease;
+}
+.hero-menu[data-open="true"] .hero-menu-caret { transform: rotate(180deg); }
+
+.hero-menu-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 12px;
+  background: rgba(14, 14, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  z-index: 200;
+}
+.hero-menu[data-open="true"] .hero-menu-list {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.hero-menu-list button {
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.hero-menu-list button:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-heading);
+}
+.hero-menu-list button[aria-checked="true"] {
+  color: #fff;
+  background: var(--accent-primary, #5B8C6A);
+}
+
+/* Phones: film only (drift reads poorly narrow), shorter frames and canvas,
+   smaller header inset. The Drift toggle button is hidden here; the script also
+   forces filmstrip so a stored drift preference cannot show. */
+@media (max-width: 640px) {
+  body[data-hero-mode]:not([data-hero-mode="off"]) .hero-zone { min-height: min(560px, 80vh); }
+  .hero-stage { inset: 62px 0 0 0; }
+  .film-frame { height: 108px; }
+  .filmstrip-layer { gap: 14px; }
+  .hero-menu-list button[data-mode="drift"] { display: none; }
+  .hero-menu-eyebrow { display: none; }
+}
