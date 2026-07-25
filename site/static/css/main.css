@@ -5,7 +5,7 @@
    ========================================================================== */
 
 /* --- Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&family=Inter:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&family=Inter:wght@400;500;600;700&family=Noto+Serif+JP:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,500&family=Gilda+Display&display=swap');
 
 /* --- Base Theme (Index / Default) --- */
 :root {
@@ -102,6 +102,57 @@
   --code-bg: #15131D;
 }
 
+/* Ramonu's header art is a banner, not a ghost. The sea-of-lavender scene (her
+   leaping through the flower field) is the point, so show it crisp. Overlay
+   darkens top and bottom so the hero text stays legible over the bright
+   pastel art; the middle is left clearer. Mirrors Ardan's dark hero. */
+[data-character="mejiro-ramonu"] .study-header .header-bg {
+  opacity: 0.5;
+  filter: saturate(1.02);
+  background-position: center 28%;
+}
+[data-character="mejiro-ramonu"] .study-header .header-overlay {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-primary) 0%,
+    rgba(9, 8, 14, 0.52) 34%,
+    rgba(9, 8, 14, 0.52) 62%,
+    var(--bg-primary) 100%
+  );
+}
+[data-character="mejiro-ramonu"] .study-header .study-epithet,
+[data-character="mejiro-ramonu"] .study-header h1,
+[data-character="mejiro-ramonu"] .study-header .character-name-jp,
+[data-character="mejiro-ramonu"] .study-header .study-meta,
+[data-character="mejiro-ramonu"] .study-header .study-subtitle {
+  text-shadow: 0 1px 12px var(--bg-primary), 0 0 5px var(--bg-primary);
+}
+
+/* Ramonu's display face. Bodoni Moda -- a severe Didone with razor thick/thin
+   contrast, cold and gem-cut precise, matching her frightening perfectionism.
+   Scoped to her headings so the shared body type system stays intact while her
+   page reads as unmistakably hers. */
+[data-character="mejiro-ramonu"] {
+  --font-display: 'Bodoni Moda', 'Source Serif 4', Georgia, serif;
+}
+[data-character="mejiro-ramonu"] .study-header h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+[data-character="mejiro-ramonu"] .study-subtitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+[data-character="mejiro-ramonu"] .study-content h2,
+[data-character="mejiro-ramonu"] .study-content h2.part-heading .part-title,
+[data-character="mejiro-ramonu"] .study-content h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+[data-character="mejiro-ramonu"] .study-content h2.part-heading .part-num {
+  font-family: var(--font-display);
+}
+
 
 /* --- Curren Bouquetd'or -- Cream / Brown / Gold (light) ---
    The only light study. Palette drawn from her racing dress: warm cream
@@ -176,7 +227,7 @@
    point, so show it. The overlay keeps a cream wash over the middle and full
    cream at top/bottom so the dark hero text stays legible over the art. */
 [data-character="curren-bouquetdor"] .study-header .header-bg {
-  opacity: 0.62;
+  opacity: 0.72;
   filter: saturate(0.95);
   background-position: center 14%;
 }
@@ -184,8 +235,8 @@
   background: linear-gradient(
     to bottom,
     var(--bg-primary) 0%,
-    rgba(247, 241, 228, 0.34) 30%,
-    rgba(247, 241, 228, 0.34) 64%,
+    rgba(247, 241, 228, 0.26) 30%,
+    rgba(247, 241, 228, 0.26) 64%,
     var(--bg-primary) 100%
   );
 }
@@ -212,6 +263,102 @@
   --quote-border: #5E7FB0;
   --quote-bg: rgba(94, 127, 176, 0.08);
   --accent-glow: rgba(94, 127, 176, 0.14);
+}
+
+
+/* --- Mejiro Ardan -- Glass / Teal (dark) ---
+   The sister study to Ramonu, and dark like her, but teal where Ramonu is
+   violet. Ground is a cold blue-black; the accent is a luminous glass-teal
+   drawn from her stage dress (teal panels, gold trim) and her ice-blue hair,
+   pushed brighter and greener than a plain steel-blue so it reads as the
+   "colorful glasswork radiance" the text keeps naming. The lavender (her eye
+   color) is reserved for the two intimate trainer quotes via glass-violet. */
+[data-character="mejiro-ardan"] {
+  --accent-primary: #57A6B4;
+  --accent-secondary: #8CCBD6;
+  --accent-glow: rgba(120, 200, 214, 0.14);
+
+  --bg-primary: #08090D;
+  --bg-secondary: #0D0F15;
+  --bg-tertiary: #13161E;
+  --bg-card: #101219;
+  --bg-card-hover: #171A23;
+
+  --quote-border: #7FC0CC;
+  --quote-bg: rgba(87, 166, 180, 0.07);
+  --link-color: #8CCBD6;
+  --link-hover: #57A6B4;
+  --divider: #212a30;
+  --code-bg: #12151C;
+}
+
+/* Ardan blockquote accents. glass-clear (clear cyan) tags the transcendence and
+   glasswork-radiance lines; glass-violet (her eye color) tags the two most
+   intimate lines with the trainer. Each just re-points the quote-local
+   variables, so the existing blockquote styles do the rest. */
+[data-character="mejiro-ardan"] blockquote.glass-clear {
+  --quote-border: #8FD0DE;
+  --quote-bg: rgba(143, 208, 222, 0.08);
+  --accent-glow: rgba(143, 208, 222, 0.14);
+}
+[data-character="mejiro-ardan"] blockquote.glass-violet {
+  --quote-border: #A99BD4;
+  --quote-bg: rgba(169, 155, 212, 0.08);
+  --accent-glow: rgba(169, 155, 212, 0.14);
+}
+
+/* Ardan's header art is a banner, not a ghost. Her main SSR scene (the
+   hot-spring night with Ramonu behind her) is the point, so show it. The
+   overlay keeps a dark wash top and bottom so the hero text stays legible,
+   with the middle left clearer to let the art read. Mirrors Curren's hero
+   treatment but tuned dark. */
+[data-character="mejiro-ardan"] .study-header .header-bg {
+  opacity: 0.5;
+  filter: saturate(1.02);
+  background-position: center 24%;
+}
+[data-character="mejiro-ardan"] .study-header .header-overlay {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-primary) 0%,
+    rgba(8, 9, 13, 0.5) 34%,
+    rgba(8, 9, 13, 0.5) 62%,
+    var(--bg-primary) 100%
+  );
+}
+/* Dark halo so the hero text reads cleanly over the lit scene. */
+[data-character="mejiro-ardan"] .study-header .study-epithet,
+[data-character="mejiro-ardan"] .study-header h1,
+[data-character="mejiro-ardan"] .study-header .character-name-jp,
+[data-character="mejiro-ardan"] .study-header .study-meta,
+[data-character="mejiro-ardan"] .study-header .study-subtitle {
+  text-shadow: 0 1px 12px var(--bg-primary), 0 0 5px var(--bg-primary);
+}
+
+/* Ardan's display face. Gilda Display -- a delicate high-contrast serif, airy
+   and elegant, with the fine luminous strokes of her glass/ballet register.
+   Single weight, so headings keep its natural weight with a little tracking for
+   presence. Gilda has no italic, so her subtitle runs upright. */
+[data-character="mejiro-ardan"] {
+  --font-display: 'Gilda Display', 'Source Serif 4', Georgia, serif;
+}
+[data-character="mejiro-ardan"] .study-header h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+[data-character="mejiro-ardan"] .study-subtitle {
+  font-family: var(--font-display);
+  font-style: normal;
+}
+[data-character="mejiro-ardan"] .study-content h2,
+[data-character="mejiro-ardan"] .study-content h2.part-heading .part-title,
+[data-character="mejiro-ardan"] .study-content h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+[data-character="mejiro-ardan"] .study-content h2.part-heading .part-num {
+  font-family: var(--font-display);
 }
 
 

@@ -202,7 +202,7 @@ def enhance_images(html: str) -> str:
 # Matches top-level "Part N — Title" headings so they can get a ceremonial
 # opener (eyebrow label + ghosted numeral). Run AFTER extract_toc so the table
 # of contents keeps the original plain heading text.
-PART_HEADING_PATTERN = re.compile(r'<h2 id="([^"]+)">(Part\s+\S+)\s+—\s+(.*?)</h2>')
+PART_HEADING_PATTERN = re.compile(r'<h2 id="([^"]+)">(Part\s+\w+)\s*[—,]\s+(.*?)</h2>')
 
 
 def format_part_headings(html: str) -> str:
